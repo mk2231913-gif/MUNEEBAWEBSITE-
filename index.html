@@ -1,176 +1,344 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, Stars, Meh, Smile, X } from 'lucide-react';
-
-const App = () => {
-  const [forgiven, setForgiven] = useState(false);
-  const [hearts, setHearts] = useState([]);
-  const [noCount, setNoCount] = useState(0);
-  const [yesScale, setYesScale] = useState(1);
-
-  // Generate floating hearts for background
-  useEffect(() => {
-    const createHeart = () => {
-      const id = Math.random();
-      const left = Math.random() * 100;
-      const duration = Math.random() * 5 + 5;
-      const size = Math.random() * 20 + 10;
-      
-      setHearts(prev => [...prev, { id, left, duration, size }]);
-
-      setTimeout(() => {
-        setHearts(prev => prev.filter(h => h.id !== id));
-      }, duration * 1000);
-    };
-
-    const interval = setInterval(createHeart, 500);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleNoClick = () => {
-    setNoCount(prev => prev + 1);
-    setYesScale(prev => prev + 0.2); // Make the Yes button bigger every time No is clicked
-  };
-
-  const getNoText = () => {
-    const texts = [
-      "No",
-      "Are you sure?",
-      "Really sure?",
-      "Please Muneeba?",
-      "Don't do this!",
-      "I'm gonna cry...",
-      "You're breaking my heart!",
-      "Pretty please?",
-    ];
-    return texts[Math.min(noCount, texts.length - 1)];
-  };
-
-  return (
-    <div className="min-h-screen bg-pink-50 overflow-hidden relative flex items-center justify-center font-sans">
-      {/* Background Floating Hearts */}
-      {hearts.map(heart => (
-        <div
-          key={heart.id}
-          className="absolute bottom-0 text-pink-200 pointer-events-none animate-float"
-          style={{
-            left: `${heart.left}%`,
-            fontSize: `${heart.size}px`,
-            animationDuration: `${heart.duration}s`
-          }}
-        >
-          <Heart fill="currentColor" />
-        </div>
-      ))}
-
-      <style>{`
-        @keyframes float {
-          0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorry Muneeba</title>
+    <!-- Load Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* 1. Global Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffe4e6 0%, #f3e8ff 50%, #fce7f3 100%);
+            overflow: hidden; /* Prevent scrolling */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .animate-float {
-          animation-name: float;
-          animation-timing-function: linear;
-        }
-        @keyframes pulse-slow {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 2s infinite;
-        }
-      `}</style>
 
-      {/* Main Card */}
-      <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 text-center border-4 border-pink-100 z-10 transition-all duration-500 transform hover:scale-[1.02]">
+        /* 2. Floating Background Animation */
+        .floating-element {
+            position: absolute;
+            bottom: -50px;
+            pointer-events: none;
+            animation: floatUp linear forwards;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
+            10% { opacity: 0.4; }
+            100% { transform: translateY(-120vh) rotate(360deg) scale(1.2); opacity: 0; }
+        }
+
+        /* 3. Glass Card Container */
+        .glass-card {
+            position: relative;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            border-radius: 32px;
+            padding: 3rem;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            transition: all 0.5s ease;
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 30px 80px rgba(236, 72, 153, 0.2);
+            transform: translateY(-5px);
+        }
+
+        /* 4. Text Styles */
+        h1 {
+            color: #1f2937;
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0.5rem 0;
+            letter-spacing: -1px;
+        }
+
+        h2 {
+            color: #db2777; /* Pink-600 */
+            font-size: 1.8rem;
+            font-style: italic;
+            font-family: serif;
+            margin: 0 0 1.5rem 0;
+        }
+
+        p {
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        /* 5. Buttons */
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        #yesBtn {
+            background: linear-gradient(90deg, #ec4899, #f43f5e, #ec4899);
+            background-size: 200% auto;
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #yesBtn:hover {
+            background-position: right center;
+            transform: scale(1.05);
+        }
+
+        #noBtn {
+            background: transparent;
+            color: #9ca3af;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        #noBtn:hover {
+            background: rgba(0,0,0,0.05);
+            color: #4b5563;
+        }
+
+        /* 6. Views (Sorry vs Thank You) */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Animation classes for transitions */
+        .fade-in {
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Success Screen Grid */
+        .compliment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .compliment-box {
+            padding: 12px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #374151;
+            transition: transform 0.2s;
+        }
         
-        {!forgiven ? (
-          <div className="space-y-6 animate-in fade-in zoom-in duration-500">
-            <div className="flex justify-center mb-4">
-              <div className="bg-red-100 p-4 rounded-full text-red-500 animate-bounce">
-                <Meh size={64} />
-              </div>
-            </div>
-            
-            <h1 className="text-4xl font-extrabold text-gray-800 tracking-tight">
-              I'm So Sorry, <span className="text-pink-600">Muneeba</span>
-            </h1>
+        .compliment-box:hover { transform: scale(1.05); }
 
-            <div className="space-y-4 text-gray-600 leading-relaxed">
-              <p>
-                I never meant to hurt you. Seeing you upset breaks my heart more than anything else.
-              </p>
-              <div className="bg-pink-50 p-4 rounded-xl border border-pink-100 italic">
-                <p className="font-medium text-pink-800">
-                  "You are the most important person in my life. My days are brighter because of you, and my world feels empty when we are apart."
-                </p>
-              </div>
-              <p className="text-sm text-gray-500">
-                Please give me a chance to make it right?
-              </p>
-            </div>
+        .bg-purple { background: #f3e8ff; color: #9333ea; }
+        .bg-rose { background: #ffe4e6; color: #e11d48; }
+        .bg-blue { background: #dbeafe; color: #2563eb; }
+        .bg-red { background: #fee2e2; color: #dc2626; }
 
-            <div className="flex flex-col gap-3 pt-4">
-              <button
-                onClick={() => setForgiven(true)}
-                style={{ transform: `scale(${yesScale})` }}
-                className="bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2"
-              >
-                <Heart className="animate-pulse" fill="white" size={20} />
-                Yes, I Forgive You
-              </button>
+    </style>
+</head>
+<body>
 
-              <button
-                onClick={handleNoClick}
-                className="bg-gray-200 text-gray-600 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-colors text-sm"
-              >
-                {getNoText()}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-8 py-8 animate-in fade-in zoom-in duration-700">
-            <div className="flex justify-center">
-              <div className="bg-green-100 p-6 rounded-full text-green-500 animate-pulse-slow">
-                <Smile size={80} strokeWidth={2.5} />
-              </div>
+    <!-- Background Container -->
+    <div id="background-container"></div>
+
+    <!-- MAIN CARD -->
+    <div class="glass-card fade-in">
+        
+        <!-- VIEW 1: SORRY SCREEN -->
+        <div id="view-sorry">
+            <!-- Animated Icon Wrapper -->
+            <div style="position: relative; display: inline-block; margin-bottom: 1.5rem;">
+                <div style="position: absolute; inset: 0; background: #fecaca; filter: blur(20px); opacity: 0.4; border-radius: 50%;"></div>
+                <i data-lucide="cloud-rain" width="80" height="80" style="color: #94a3b8; position: relative; animation: bounce 2s infinite;"></i>
+                <div style="position: absolute; bottom: -5px; right: -5px; background: white; padding: 6px; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <i data-lucide="heart-crack" width="20" height="20" style="color: #f87171;"></i>
+                </div>
             </div>
 
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                Thank You, Muneeba! ❤️
-              </h1>
-              <p className="text-pink-600 font-medium">
-                You just made my whole world bright again.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 text-left bg-white p-4 rounded-2xl shadow-inner">
-              <div className="bg-pink-50 p-3 rounded-lg flex items-center gap-2">
-                <Stars size={18} className="text-pink-500" />
-                <span className="text-sm text-gray-700">My Best Friend</span>
-              </div>
-              <div className="bg-pink-50 p-3 rounded-lg flex items-center gap-2">
-                <Heart size={18} className="text-pink-500" />
-                <span className="text-sm text-gray-700">My Happiness</span>
-              </div>
-              <div className="bg-pink-50 p-3 rounded-lg flex items-center gap-2">
-                <Stars size={18} className="text-pink-500" />
-                <span className="text-sm text-gray-700">My Everything</span>
-              </div>
-              <div className="bg-pink-50 p-3 rounded-lg flex items-center gap-2">
-                <Heart size={18} className="text-pink-500" />
-                <span className="text-sm text-gray-700">My World</span>
-              </div>
-            </div>
-            
-            <p className="text-gray-400 text-xs mt-4">
-              I promise to be better.
+            <h1>Sorry...</h1>
+            <h2>Muneeba</h2>
+            <p id="main-text">
+                I know I messed up. The last thing I ever want is to be the reason for your frown. Can we turn this rain into sunshine?
             </p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
-export default App;
+            <div class="btn-container">
+                <button id="yesBtn" onclick="forgiveMe()">
+                    <i data-lucide="sparkles" width="18"></i>
+                    Yes, I Forgive You
+                    <i data-lucide="sparkles" width="18"></i>
+                </button>
+                <button id="noBtn" onclick="clickNo()">No</button>
+            </div>
+        </div>
+
+        <!-- VIEW 2: SUCCESS SCREEN (Hidden by default) -->
+        <div id="view-success" class="hidden fade-in">
+            <!-- Happy Icon -->
+            <div style="position: relative; display: inline-block; margin-bottom: 1.5rem;">
+                <div style="position: absolute; inset: 0; background: #fef08a; filter: blur(30px); opacity: 0.5; border-radius: 50%;"></div>
+                <i data-lucide="sun" width="90" height="90" style="color: #facc15; position: relative; animation: spin-slow 10s linear infinite;"></i>
+                <div style="position: absolute; bottom: 0; right: 0; background: white; padding: 8px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    <i data-lucide="smile" width="28" height="28" style="color: #22c55e;"></i>
+                </div>
+            </div>
+
+            <h1>Yay! Thank You!</h1>
+            <p style="color: #ec4899; font-weight: bold; margin-bottom: 2rem;">
+                You're the best, Muneeba! ❤️
+            </p>
+
+            <div class="compliment-grid">
+                <div class="compliment-box bg-purple"><i data-lucide="stars" width="18"></i> Favorite Person</div>
+                <div class="compliment-box bg-rose"><i data-lucide="flower" width="18"></i> Beautiful Soul</div>
+                <div class="compliment-box bg-blue"><i data-lucide="music" width="18"></i> My Harmony</div>
+                <div class="compliment-box bg-red"><i data-lucide="heart" width="18"></i> My Love</div>
+            </div>
+
+            <div style="background: linear-gradient(to right, #fdf2f8, white); padding: 1rem; border-radius: 12px; border: 1px solid #fbcfe8;">
+                <small style="color: #9ca3af; font-style: italic;">"I promise to cherish you more every single day."</small>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // LOGIC
+        let noCount = 0;
+        let yesScale = 1;
+
+        // "No" Button Messages
+        const noTexts = [
+            "No", "Are you sure?", "Please don't...", "I'll be so sad 😢", 
+            "Heartbroken...", "Just one chance?", "I'm crying now 😭", "Pls Muneeba 🥺"
+        ];
+
+        function clickNo() {
+            noCount++;
+            const btn = document.getElementById('noBtn');
+            const yesBtn = document.getElementById('yesBtn');
+
+            // Change Text
+            const textIndex = Math.min(noCount, noTexts.length - 1);
+            btn.innerText = noTexts[textIndex];
+
+            // Grow Yes Button
+            yesScale += 0.2;
+            if (yesScale > 3) yesScale = 3; // Max limit
+            yesBtn.style.transform = `scale(${yesScale})`;
+        }
+
+        function forgiveMe() {
+            // Switch Views
+            document.getElementById('view-sorry').classList.add('hidden');
+            document.getElementById('view-success').classList.remove('hidden');
+            
+            // Trigger Confetti
+            createCelebration();
+        }
+
+        // BACKGROUND ANIMATION SYSTEM
+        function createFloatingElement(isCelebration = false) {
+            const el = document.createElement('div');
+            el.classList.add('floating-element');
+            
+            // Randomize Props
+            const size = Math.random() * 20 + 10;
+            const left = Math.random() * 100;
+            const duration = Math.random() * 10 + 10;
+            const colors = ['#f9a8d4', '#d8b4fe', '#fdba74']; // Pink, Purple, Orange
+            const color = isCelebration ? '#ef4444' : colors[Math.floor(Math.random() * colors.length)];
+
+            // Style
+            el.style.width = `${size}px`;
+            el.style.height = `${size}px`;
+            el.style.left = `${left}%`;
+            el.style.animationDuration = `${isCelebration ? 3 : duration}s`;
+            el.style.background = isCelebration ? 'none' : color; // Shapes vs Icon
+            
+            // Use SVG for shapes
+            if(Math.random() > 0.5 || isCelebration) {
+                // Heart shape using CSS clip-path or SVG content
+                el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`;
+                el.style.background = 'none';
+            } else {
+                // Circle
+                el.style.borderRadius = '50%';
+            }
+
+            if(isCelebration) {
+                el.style.zIndex = 50;
+                el.style.opacity = 1;
+            }
+
+            document.getElementById('background-container').appendChild(el);
+
+            // Cleanup
+            setTimeout(() => {
+                el.remove();
+            }, (isCelebration ? 3000 : duration * 1000));
+        }
+
+        // Start Background Loop
+        setInterval(() => createFloatingElement(false), 800);
+
+        // Celebration Burst
+        function createCelebration() {
+            for(let i=0; i<50; i++) {
+                setTimeout(() => {
+                    createFloatingElement(true);
+                }, i * 50);
+            }
+        }
+
+        // Add CSS Animation Keyframes dynamically
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+            @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        `;
+        document.head.appendChild(styleSheet);
+
+    </script>
+</body>
+</html>
