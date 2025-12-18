@@ -1,0 +1,176 @@
+import React, { useState, useEffect } from 'react';
+import { Heart, Stars, Meh, Smile, X } from 'lucide-react';
+
+const App = () => {
+  const [forgiven, setForgiven] = useState(false);
+  const [hearts, setHearts] = useState([]);
+  const [noCount, setNoCount] = useState(0);
+  const [yesScale, setYesScale] = useState(1);
+
+  // Generate floating hearts for background
+  useEffect(() => {
+    const createHeart = () => {
+      const id = Math.random();
+      const left = Math.random() * 100;
+      const duration = Math.random() * 5 + 5;
+      const size = Math.random() * 20 + 10;
+      
+      setHearts(prev => [...prev, { id, left, duration, size }]);
+
+      setTimeout(() => {
+        setHearts(prev => prev.filter(h => h.id !== id));
+      }, duration * 1000);
+    };
+
+    const interval = setInterval(createHeart, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleNoClick = () => {
+    setNoCount(prev => prev + 1);
+    setYesScale(prev => prev + 0.2); // Make the Yes button bigger every time No is clicked
+  };
+
+  const getNoText = () => {
+    const texts = [
+      "No",
+      "Are you sure?",
+      "Really sure?",
+      "Please Muneeba?",
+      "Don't do this!",
+      "I'm gonna cry...",
+      "You're breaking my heart!",
+      "Pretty please?",
+    ];
+    return texts[Math.min(noCount, texts.length - 1)];
+  };
+
+  return (
+    <div className="min-h-screen bg-pink-50 overflow-hidden relative flex items-center justify-center font-sans">
+      {/* Background Floating Hearts */}
+      {hearts.map(heart => (
+        <div
+          key={heart.id}
+          className="absolute bottom-0 text-pink-200 pointer-events-none animate-float"
+          style={{
+            left: `${heart.left}%`,
+            fontSize: `${heart.size}px`,
+            animationDuration: `${heart.duration}s`
+          }}
+        >
+          <Heart fill="currentColor" />
+        </div>
+      ))}
+
+      <style>{`
+        @keyframes float {
+          0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+        .animate-float {
+          animation-name: float;
+          animation-timing-function: linear;
+        }
+        @keyframes pulse-slow {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 2s infinite;
+        }
+      `}</style>
+
+      {/* Main Card */}
+      <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-2xl max-w-md w-full mx-4 text-center border-4 border-pink-100 z-10 transition-all duration-500 transform hover:scale-[1.02]">
+        
+        {!forgiven ? (
+          <div className="space-y-6 animate-in fade-in zoom-in duration-500">
+            <div className="flex justify-center mb-4">
+              <div className="bg-red-100 p-4 rounded-full text-red-500 animate-bounce">
+                <Meh size={64} />
+              </div>
+            </div>
+            
+            <h1 className="text-4xl font-extrabold text-gray-800 tracking-tight">
+              I'm So Sorry, <span className="text-pink-600">Muneeba</span>
+            </h1>
+
+            <div className="space-y-4 text-gray-600 leading-relaxed">
+              <p>
+                I never meant to hurt you. Seeing you upset breaks my heart more than anything else.
+              </p>
+              <div className="bg-pink-50 p-4 rounded-xl border border-pink-100 italic">
+                <p className="font-medium text-pink-800">
+                  "You are the most important person in my life. My days are brighter because of you, and my world feels empty when we are apart."
+                </p>
+              </div>
+              <p className="text-sm text-gray-500">
+                Please give me a chance to make it right?
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 pt-4">
+              <button
+                onClick={() => setForgiven(true)}
+                style={{ transform: `scale(${yesScale})` }}
+                className="bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2"
+              >
+                <Heart className="animate-pulse" fill="white" size={20} />
+                Yes, I Forgive You
+              </button>
+
+              <button
+                onClick={handleNoClick}
+                className="bg-gray-200 text-gray-600 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-colors text-sm"
+              >
+                {getNoText()}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-8 py-8 animate-in fade-in zoom-in duration-700">
+            <div className="flex justify-center">
+              <div className="bg-green-100 p-6 rounded-full text-green-500 animate-pulse-slow">
+                <Smile size={80} strokeWidth={2.5} />
+              </div>
+            </div>
+
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                Thank You, Muneeba! ❤️
+              </h1>
+              <p className="text-pink-600 font-medium">
+                You just made my whole world bright again.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-left bg-white p-4 rounded-2xl shadow-inner">
+              <div className="bg-pink-50 p-3 rounded-lg flex items-center gap-2">
+                <Stars size={18} className="text-pink-500" />
+                <span className="text-sm text-gray-700">My Best Friend</span>
+              </div>
+              <div className="bg-pink-50 p-3 rounded-lg flex items-center gap-2">
+                <Heart size={18} className="text-pink-500" />
+                <span className="text-sm text-gray-700">My Happiness</span>
+              </div>
+              <div className="bg-pink-50 p-3 rounded-lg flex items-center gap-2">
+                <Stars size={18} className="text-pink-500" />
+                <span className="text-sm text-gray-700">My Everything</span>
+              </div>
+              <div className="bg-pink-50 p-3 rounded-lg flex items-center gap-2">
+                <Heart size={18} className="text-pink-500" />
+                <span className="text-sm text-gray-700">My World</span>
+              </div>
+            </div>
+            
+            <p className="text-gray-400 text-xs mt-4">
+              I promise to be better.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default App;
